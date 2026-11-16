@@ -21,7 +21,7 @@ func TestLoadConfig_Defaults(t *testing.T) {
 	}
 
 	cfg := LoadConfig("")
-	assert.Equal(t, "8080", cfg.AppPort)
+	assert.Equal(t, "7071", cfg.AppPort)
 	assert.Equal(t, "development", cfg.AppEnv)
 	assert.Equal(t, "pabwe-secret-key-2026-todolist-golang-gin", cfg.AppKey)
 	assert.Equal(t, "admin", cfg.AdminUsername)

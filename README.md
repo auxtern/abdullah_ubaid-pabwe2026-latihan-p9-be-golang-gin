@@ -51,7 +51,7 @@ Backend RESTful API untuk aplikasi Todolist dengan arsitektur **Feature-First Ap
 ## ⚙️ Konfigurasi Environment (`.env`)
 
 ```env
-APP_PORT=8080
+APP_PORT=7071
 APP_ENV=development
 APP_KEY=pabwe-secret-key-2026-todolist-golang-gin
 
@@ -89,10 +89,10 @@ go test -v -cover ./internal/...
 
 ```bash
 # Menjalankan langsung melalui Go compiler:
-go run cmd/server/main.go
+go run main.go
 ```
-- API Server aktif pada: `http://localhost:8080`
-- Dokumentasi Swagger UI: `http://localhost:8080/swagger/index.html`
+- API Server aktif pada: `http://localhost:7071`
+- Dokumentasi Swagger UI: `http://localhost:7071/swagger/index.html`
 
 ---
 
@@ -103,18 +103,18 @@ Kompilasi kode sumber menjadi berkas binary mandiri (*standalone executable*) un
 ### 1. Kompilasi (*Build*)
 ```bash
 # Kompilasi untuk sistem operasi lokal (Windows):
-go build -o server.exe cmd/server/main.go
+go build -o server.exe main.go
 ```
 
 > **Opsi Cross-Compile (misal untuk Server Linux/VPS):**
 > ```bash
 > # Di Windows PowerShell:
-> $env:GOOS="linux"; $env:GOARCH="amd64"; go build -o server cmd/server/main.go
+> $env:GOOS="linux"; $env:GOARCH="amd64"; go build -o server main.go
 >
 > # Di Windows Command Prompt (CMD):
 > set GOOS=linux
 > set GOARCH=amd64
-> go build -o server cmd/server/main.go
+> go build -o server main.go
 > ```
 
 ### 2. Menjalankan Hasil *Build*

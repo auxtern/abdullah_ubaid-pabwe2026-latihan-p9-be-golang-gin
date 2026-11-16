@@ -42,7 +42,7 @@ func LoadConfig(envPath ...string) *Config {
 	}
 
 	return &Config{
-		AppPort:        getEnv("APP_PORT", "8080"),
+		AppPort:        getEnv("APP_PORT", "7071"),
 		AppEnv:         getEnv("APP_ENV", "development"),
 		AppKey:         getEnv("APP_KEY", "pabwe-secret-key-2026-todolist-golang-gin"),
 		AdminUsername:  getEnv("ADMIN_USERNAME", "admin"),

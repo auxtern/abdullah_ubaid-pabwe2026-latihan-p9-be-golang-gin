@@ -1,6 +1,6 @@
 {
   "api_name": "Delcom Todolist REST API (Golang Gin)",
-  "base_url": "http://localhost:8080/api",
+  "base_url": "http://localhost:7071/api",
   "version": "1.0.0",
   "description": "Dokumentasi contoh representatif request & response untuk seluruh endpoint API Backend Todolist Golang Gin.",
   "endpoints": [
