@@ -10,7 +10,7 @@
 *.dll
 *.so
 *.dylib
-server
+/server
 main
 app
 bin/
