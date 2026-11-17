@@ -35,6 +35,12 @@ pipeline {
                 docker {
                     image 'golang:1.27-alpine'
                     reuseNode true
+                    args '''
+                        -e HOME=/tmp
+                        -e GOCACHE=/go-cache/build
+                        -e GOMODCACHE=/go-cache/mod
+                        -v cicd-go-cache:/go-cache
+                    '''
                 }
             }
 
@@ -45,9 +51,16 @@ pipeline {
                     echo "=== Go Runtime ==="
                     go version
 
-                    echo "=== Downloading Go Modules ==="
-                    go mod download
-                    go mod verify
+                    if [ ! -f /go-cache/mod/.stamp ] \
+                        || [ go.mod -nt /go-cache/mod/.stamp ] \
+                        || [ go.sum -nt /go-cache/mod/.stamp ]; then
+                        echo "=== Downloading Go Modules ==="
+                        go mod download
+                        go mod verify
+                        touch /go-cache/mod/.stamp
+                    else
+                        echo "=== go.mod/go.sum unchanged, using cached modules ==="
+                    fi
 
                     echo "=== Go Dependencies Installed ==="
                 '''
@@ -62,6 +75,12 @@ pipeline {
                 docker {
                     image 'golang:1.27-alpine'
                     reuseNode true
+                    args '''
+                        -e HOME=/tmp
+                        -e GOCACHE=/go-cache/build
+                        -e GOMODCACHE=/go-cache/mod
+                        -v cicd-go-cache:/go-cache
+                    '''
                 }
             }
 
@@ -97,6 +116,12 @@ pipeline {
                 docker {
                     image 'golang:1.27-alpine'
                     reuseNode true
+                    args '''
+                        -e HOME=/tmp
+                        -e GOCACHE=/go-cache/build
+                        -e GOMODCACHE=/go-cache/mod
+                        -v cicd-go-cache:/go-cache
+                    '''
                 }
             }
 
@@ -178,7 +203,7 @@ pipeline {
         }
 
         // ============================================================
-        // PACKAGE APPLICATION
+        // PACKAGE APPLICATION (PURE SOURCE CODE DARI GITHUB)
         // ============================================================
         stage('Package Application') {
             agent {
@@ -197,26 +222,34 @@ pipeline {
                     echo "       CREATING APPLICATION PACKAGE"
                     echo "======================================"
 
-                    apk add --no-cache zip unzip
+                    apk add --no-cache git zip unzip
 
                     rm -f latest-app.zip
 
-                    chmod +x server || true
+                    git config --global --add safe.directory '*' || true
 
-                    zip -r latest-app.zip . \
-                        -x ".git/*" \
-                        -x ".env" \
-                        -x ".env.backup" \
-                        -x ".env.local" \
-                        -x ".env.production" \
-                        -x ".trivy-cache/*" \
-                        -x "latest-app.zip" \
-                        -x "trivy-results.sarif" \
-                        -x "coverage.out" \
-                        -x "cov*" \
-                        -x "coverage*" \
-                        -x ".vscode/*" \
-                        -x ".idea/*"
+                    echo "=== Creating Source Code Package (Pure Code from GitHub) ==="
+                    if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+                        git archive --format=zip HEAD -o latest-app.zip
+                    else
+                        zip -r latest-app.zip . \
+                            -x ".git/*" \
+                            -x ".env*" \
+                            -x "server" \
+                            -x "server.exe" \
+                            -x "main" \
+                            -x "app" \
+                            -x "*.out" \
+                            -x "*.test" \
+                            -x "*.prof" \
+                            -x "cov*" \
+                            -x "coverage*" \
+                            -x ".trivy-cache/*" \
+                            -x "trivy-results.sarif" \
+                            -x "latest-app.zip" \
+                            -x ".vscode/*" \
+                            -x ".idea/*"
+                    fi
 
                     echo "=== Application Package Created ==="
                     ls -lh latest-app.zip
@@ -227,6 +260,13 @@ pipeline {
                         exit 1
                     fi
                     echo "OK: file .env tidak ada di zip"
+
+                    echo "=== Verify build binary excluded ==="
+                    if unzip -Z1 latest-app.zip | grep -E '^server$' >/dev/null; then
+                        echo "ERROR: zip masih berisi biner hasil build"
+                        exit 1
+                    fi
+                    echo "OK: biner hasil build tidak disertakan dalam zip"
 
                     echo "=== Package Content (sample) ==="
                     unzip -l latest-app.zip | head -n 60
