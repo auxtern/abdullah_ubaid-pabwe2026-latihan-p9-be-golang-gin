@@ -46,20 +46,44 @@ func SetupRouter(cfg *config.Config, db *gorm.DB) *gin.Engine {
 	adminSvc := admin.NewAdminService(db)
 	adminHdr := admin.NewAdminHandler(adminSvc)
 
-	// Swagger Documentation Route (points to api.json)
+	// Helper to get dynamic swagger JSON adjusted to the current request URL
+	getSwaggerData := func(c *gin.Context) []byte {
+		host := c.GetHeader("X-Forwarded-Host")
+		if host == "" {
+			host = c.Request.Host
+		}
+
+		scheme := "http"
+		if c.Request.TLS != nil || c.GetHeader("X-Forwarded-Proto") == "https" {
+			scheme = "https"
+		}
+
+		return docs.GetSwaggerJSON(host, scheme)
+	}
+
+	// Redirect /swagger to /swagger/index.html
+	r.GET("/swagger", func(c *gin.Context) {
+		c.Redirect(http.StatusMovedPermanently, "/swagger/index.html")
+	})
+
+	// Swagger Documentation Route (points to api.json and adjusts dynamically to current URL)
 	swaggerHandler := ginSwagger.WrapHandler(swaggerFiles.Handler, ginSwagger.URL("/swagger/api.json"))
 	r.GET("/swagger/*any", func(c *gin.Context) {
 		anyParam := c.Param("any")
+		if anyParam == "" || anyParam == "/" {
+			c.Redirect(http.StatusMovedPermanently, "/swagger/index.html")
+			return
+		}
 		if anyParam == "/api.json" || anyParam == "/doc.json" {
-			c.Data(http.StatusOK, "application/json; charset=utf-8", docs.ApiJSON)
+			c.Data(http.StatusOK, "application/json; charset=utf-8", getSwaggerData(c))
 			return
 		}
 		swaggerHandler(c)
 	})
 
-	// Direct endpoint for api.json at root level
+	// Direct endpoint for api.json at root level (adjusts dynamically to current URL)
 	r.GET("/api.json", func(c *gin.Context) {
-		c.Data(http.StatusOK, "application/json; charset=utf-8", docs.ApiJSON)
+		c.Data(http.StatusOK, "application/json; charset=utf-8", getSwaggerData(c))
 	})
 
 	api := r.Group("/api")

@@ -8,7 +8,7 @@
       "name": "Delcom - Labs"
     }
   },
-  "host": "localhost:7071",
+  "host": "",
   "basePath": "/",
   "schemes": [
     "http",

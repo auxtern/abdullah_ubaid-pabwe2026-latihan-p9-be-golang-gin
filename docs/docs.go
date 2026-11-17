@@ -3,6 +3,7 @@ package docs
 
 import (
 	_ "embed"
+	"encoding/json"
 
 	"github.com/swaggo/swag"
 )
@@ -13,15 +14,34 @@ var ApiJSON []byte
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0.0",
-	Host:             "localhost:7071",
+	Host:             "",
 	BasePath:         "/",
-	Schemes:          []string{"http", "https"},
+	Schemes:          []string{},
 	Title:            "Delcom Todolist REST API",
 	Description:      "Dokumentasi RESTful API Backend Todolist Golang Gin dengan Feature-First & TDD.",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  string(ApiJSON),
 	LeftDelim:        "{{",
 	RightDelim:       "}}",
+}
+
+// GetSwaggerJSON returns the embedded api.json with host and scheme dynamically set to match the current request URL.
+func GetSwaggerJSON(host, scheme string) []byte {
+	var doc map[string]interface{}
+	if err := json.Unmarshal(ApiJSON, &doc); err != nil {
+		return ApiJSON
+	}
+	if host != "" {
+		doc["host"] = host
+	}
+	if scheme != "" {
+		doc["schemes"] = []string{scheme}
+	}
+	updated, err := json.MarshalIndent(doc, "", "  ")
+	if err != nil {
+		return ApiJSON
+	}
+	return updated
 }
 
 func init() {

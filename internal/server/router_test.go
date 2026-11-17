@@ -58,27 +58,52 @@ func TestSetupRouter_PureApi(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w5.Code)
 	assert.Contains(t, w5.Body.String(), `url: "/swagger/api.json"`)
 
-	// 6. Test Swagger api.json endpoint
+	// 6. Test Swagger api.json endpoint with dynamic host and scheme
 	w6 := httptest.NewRecorder()
 	req6, _ := http.NewRequest(http.MethodGet, "/swagger/api.json", nil)
 	req6.RequestURI = "/swagger/api.json"
+	req6.Host = "api.myapp.test:8080"
 	router.ServeHTTP(w6, req6)
 	assert.Equal(t, http.StatusOK, w6.Code)
 	assert.Contains(t, w6.Body.String(), `"swagger": "2.0"`)
-	assert.Contains(t, w6.Body.String(), "Delcom Todolist REST API")
+	assert.Contains(t, w6.Body.String(), `"host": "api.myapp.test:8080"`)
+	assert.Contains(t, w6.Body.String(), `"http"`)
 
-	// 7. Test Swagger doc.json backward compatibility endpoint
+	// 7. Test Swagger api.json endpoint behind proxy (X-Forwarded-Host & X-Forwarded-Proto)
 	w7 := httptest.NewRecorder()
-	req7, _ := http.NewRequest(http.MethodGet, "/swagger/doc.json", nil)
-	req7.RequestURI = "/swagger/doc.json"
+	req7, _ := http.NewRequest(http.MethodGet, "/swagger/api.json", nil)
+	req7.RequestURI = "/swagger/api.json"
+	req7.Header.Set("X-Forwarded-Host", "pabwe.del.ac.id")
+	req7.Header.Set("X-Forwarded-Proto", "https")
 	router.ServeHTTP(w7, req7)
 	assert.Equal(t, http.StatusOK, w7.Code)
-	assert.Contains(t, w7.Body.String(), `"swagger": "2.0"`)
+	assert.Contains(t, w7.Body.String(), `"host": "pabwe.del.ac.id"`)
+	assert.Contains(t, w7.Body.String(), `"https"`)
 
-	// 8. Test Root api.json endpoint
+	// 8. Test Swagger doc.json backward compatibility endpoint
 	w8 := httptest.NewRecorder()
-	req8, _ := http.NewRequest(http.MethodGet, "/api.json", nil)
+	req8, _ := http.NewRequest(http.MethodGet, "/swagger/doc.json", nil)
+	req8.RequestURI = "/swagger/doc.json"
 	router.ServeHTTP(w8, req8)
 	assert.Equal(t, http.StatusOK, w8.Code)
 	assert.Contains(t, w8.Body.String(), `"swagger": "2.0"`)
+
+	// 9. Test Root api.json endpoint
+	w9 := httptest.NewRecorder()
+	req9, _ := http.NewRequest(http.MethodGet, "/api.json", nil)
+	req9.Host = "localhost:7071"
+	router.ServeHTTP(w9, req9)
+	assert.Equal(t, http.StatusOK, w9.Code)
+	assert.Contains(t, w9.Body.String(), `"host": "localhost:7071"`)
+
+	// 10. Test Swagger redirects (/swagger and /swagger/)
+	w10a := httptest.NewRecorder()
+	req10a, _ := http.NewRequest(http.MethodGet, "/swagger", nil)
+	router.ServeHTTP(w10a, req10a)
+	assert.Equal(t, http.StatusMovedPermanently, w10a.Code)
+
+	w10b := httptest.NewRecorder()
+	req10b, _ := http.NewRequest(http.MethodGet, "/swagger/", nil)
+	router.ServeHTTP(w10b, req10b)
+	assert.Equal(t, http.StatusMovedPermanently, w10b.Code)
 }
