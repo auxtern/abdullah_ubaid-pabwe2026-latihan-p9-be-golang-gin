@@ -27,7 +27,8 @@ Backend RESTful API untuk aplikasi Todolist dengan arsitektur **Feature-First Ap
    - Konfigurasi via `.env`: `OPENAI_ENDPOINT`, `OPENAI_KEY`, `OPENAI_MODEL`.
 
 5. **Dokumentasi OpenAPI / Swagger UI**:
-   - Tersedia dokumentasi interaktif di `/swagger/index.html` dengan kontak pengembang **Delcom - Labs**.
+   - Tersedia dokumentasi interaktif di `/swagger/index.html` dengan spesifikasi OpenAPI `api.json` yang di-embed langsung ke binary executable (dapat diakses di `/swagger/api.json` atau `/api.json`).
+   - Kontak pengembang: **Delcom - Labs**.
 
 6. **Pure RESTful API & CORS**:
    - Backend murni mengekspos endpoint RESTful API dengan header CORS aktif, siap di-consume oleh Frontend ReactJS yang dideploy terpisah.
@@ -92,7 +93,7 @@ go test -v -cover ./internal/...
 go run main.go
 ```
 - API Server aktif pada: `http://localhost:7071`
-- Dokumentasi Swagger UI: `http://localhost:7071/swagger/index.html`
+- Dokumentasi Swagger UI: `http://localhost:7071/swagger/index.html` (Spesifikasi JSON: `/swagger/api.json` atau `/api.json`)
 
 ---
 

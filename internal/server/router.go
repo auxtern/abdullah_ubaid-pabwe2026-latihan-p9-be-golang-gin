@@ -9,7 +9,7 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 	"gorm.io/gorm"
 
-	_ "app/docs"
+	"app/docs"
 	"app/internal/config"
 	"app/internal/features/admin"
 	"app/internal/features/ai"
@@ -46,8 +46,21 @@ func SetupRouter(cfg *config.Config, db *gorm.DB) *gin.Engine {
 	adminSvc := admin.NewAdminService(db)
 	adminHdr := admin.NewAdminHandler(adminSvc)
 
-	// Swagger Documentation Route
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	// Swagger Documentation Route (points to api.json)
+	swaggerHandler := ginSwagger.WrapHandler(swaggerFiles.Handler, ginSwagger.URL("/swagger/api.json"))
+	r.GET("/swagger/*any", func(c *gin.Context) {
+		anyParam := c.Param("any")
+		if anyParam == "/api.json" || anyParam == "/doc.json" {
+			c.Data(http.StatusOK, "application/json; charset=utf-8", docs.ApiJSON)
+			return
+		}
+		swaggerHandler(c)
+	})
+
+	// Direct endpoint for api.json at root level
+	r.GET("/api.json", func(c *gin.Context) {
+		c.Data(http.StatusOK, "application/json; charset=utf-8", docs.ApiJSON)
+	})
 
 	api := r.Group("/api")
 	{
