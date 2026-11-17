@@ -33,7 +33,7 @@ pipeline {
         stage('Install Dependencies') {
             agent {
                 docker {
-                    image 'golang:1.24-alpine'
+                    image 'golang:1.27-alpine'
                     reuseNode true
                 }
             }
@@ -60,7 +60,7 @@ pipeline {
         stage('Test') {
             agent {
                 docker {
-                    image 'golang:1.24-alpine'
+                    image 'golang:1.27-alpine'
                     reuseNode true
                 }
             }
@@ -95,7 +95,7 @@ pipeline {
         stage('Build Application') {
             agent {
                 docker {
-                    image 'golang:1.24-alpine'
+                    image 'golang:1.27-alpine'
                     reuseNode true
                 }
             }
